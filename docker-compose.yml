@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: ceduardooliveira/postgres-pgcrypto:9.6
+    environment:
+      POSTGRES_DB: dspace
+      POSTGRES_USER: dspace
+      POSTGRES_PASSWORD: dspace
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - dspace-net
+    ports:
+      - "5432:5432"
+    container_name: postgres-dspace
+
+  solr:
+    image: solr:6.6
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/opt/solr/server/solr/mycores
+    networks:
+      - dspace-net
+    container_name: solr-dspace
+
+  dspace-builder:
+    image: ceduardooliveira/dspace-builder:6.3.5
+    container_name: dspace-builder
+    depends_on:
+      - postgres
+      - solr
+    volumes:
+      - build:/build
+      - dspace:/dspace
+    networks:
+      - dspace-net
+    command: >
+      sh -c "
+        until [ -d /build/dspace-6.3-src-release/dspace/target/dspace-installer ]; do
+          echo 'Esperando o build...'; sleep 2;
+        done &&
+        cd /build/dspace-6.3-src-release/dspace/target/dspace-installer &&
+        until pg_isready -h postgres-dspace -U dspace; do
+          echo 'Esperando o PostgreSQL...'; sleep 2;
+        done &&
+        ant fresh_install"
+
+  tomcat:
+    image: ceduardooliveira/dspace-tomcat:6.3.3
+    ports:
+      - "8081:8080"
+    depends_on:
+      - dspace-builder
+    volumes:
+      - build:/build
+      - dspace:/dspace
+    networks:
+      - dspace-net
+    container_name: tomcat-dspace
+
+volumes:
+  pg_data:
+  solr_data:
+  build:
+  dspace:
+
+networks:
+  dspace-net:
