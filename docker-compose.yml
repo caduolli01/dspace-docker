@@ -40,7 +40,7 @@ services:
           echo 'Esperando o build...'; sleep 2;
         done &&
         cd /build/dspace-6.3-src-release/dspace/target/dspace-installer &&
-        until pg_isready -h postgres-dspace -U dspace; do
+        until pg_isready -h postgres-dspace -U ${POSTGRES_USER}; do
           echo 'Esperando o PostgreSQL...'; sleep 2;
         done &&
         ant fresh_install"
@@ -66,4 +66,5 @@ volumes:
 
 networks:
   dspace-net:
+
 
