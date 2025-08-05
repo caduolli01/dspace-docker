@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - dspace-net
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    container_name: ${POSTGRES_CONTAINER_NAME}
+
+  solr:
+    image: ${SOLR_IMAGE}
+    ports:
+      - "${SOLR_PORT}:8983"
+    volumes:
+      - solr_data:/opt/solr/server/solr/mycores
+    networks:
+      - dspace-net
+    container_name: ${SOLR_CONTAINER_NAME}
+
+  dspace-builder:
+    image: ${BUILDER_IMAGE}
+    container_name: ${BUILDER_CONTAINER_NAME}
+    depends_on:
+      - postgres
+      - solr
+    volumes:
+      - build:/build
+      - dspace:/dspace
+    networks:
+      - dspace-net
+
+  tomcat:
+    image: ${TOMCAT_IMAGE}
+    ports:
+      - "${TOMCAT_PORT}:8080"
+    depends_on:
+      - dspace-builder
+    volumes:
+      - build:/build
+      - dspace:/dspace
+    networks:
+      - dspace-net
+    container_name: ${TOMCAT_CONTAINER_NAME}
+
+volumes:
+  pg_data:
+  solr_data:
+  build:
+  dspace:
+
+networks:
+  dspace-net:
