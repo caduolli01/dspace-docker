@@ -12,6 +12,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     container_name: ${POSTGRES_CONTAINER_NAME}
+    restart: unless-stopped
 
   solr:
     image: ${SOLR_IMAGE}
@@ -22,6 +23,7 @@ services:
     networks:
       - dspace-net
     container_name: ${SOLR_CONTAINER_NAME}
+    restart: unless-stopped
 
   dspace-builder:
     image: ${BUILDER_IMAGE}
@@ -47,6 +49,7 @@ services:
     networks:
       - dspace-net
     container_name: ${TOMCAT_CONTAINER_NAME}
+    restart: unless-stopped
 
 volumes:
   pg_data:
@@ -56,3 +59,4 @@ volumes:
 
 networks:
   dspace-net:
+
